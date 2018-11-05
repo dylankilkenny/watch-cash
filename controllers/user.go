@@ -8,6 +8,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+func FetchUser(c *gin.Context) {
+	id := c.Param("id")
+	var user models.User
+
+	db := db.GetDB()
+	if err := db.Where("id = ?", id).First(&user).Error; err != nil {
+		c.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+	c.BindJSON(&task)
+	db.Save(&task)
+	c.JSON(http.StatusOK, &task)
+}
+
 func CreateUser(c *gin.Context) {
 	var user models.User
 	var db = db.GetDB()

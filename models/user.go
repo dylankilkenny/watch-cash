@@ -8,13 +8,18 @@ import (
 	"github.com/satori/go.uuid"
 )
 
+type BaseModel struct {
+	ID        uuid.UUID  `gorm:"primary_key;column:id" json:"id"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
+}
+
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	FirstName string    `json:"firstname" binding:"required"`
-	LastName  string    `json:"lastname"`
-	Email     string    `json:"email"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	BaseModel
+	FirstName string `json:"firstname" binding:"required"`
+	LastName  string `json:"lastname"`
+	Email     string `json:"email"`
 }
 
 func (user *User) BeforeCreate(scope *gorm.Scope) error {
