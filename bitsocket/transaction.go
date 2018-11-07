@@ -1,4 +1,4 @@
-package models
+package bitsocket
 
 type Transaction struct {
 	Type string `json:"type"`

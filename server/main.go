@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/dylankilkenny/watch-cash/controllers"
-	"github.com/dylankilkenny/watch-cash/db"
+	"github.com/dylankilkenny/watch-cash/server/controllers"
+	"github.com/dylankilkenny/watch-cash/server/db"
 	"github.com/gin-gonic/gin"
 )
 

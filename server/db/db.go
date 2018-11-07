@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/dylankilkenny/watch-cash/models"
+	"github.com/dylankilkenny/watch-cash/server/models"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/lib/pq"

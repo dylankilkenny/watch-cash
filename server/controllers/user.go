@@ -3,8 +3,8 @@ package user
 import (
 	"net/http"
 
-	"github.com/dylankilkenny/watch-cash/db"
-	"github.com/dylankilkenny/watch-cash/models"
+	"github.com/dylankilkenny/watch-cash/server/db"
+	"github.com/dylankilkenny/watch-cash/server/models"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,9 +17,9 @@ func FetchUser(c *gin.Context) {
 		c.AbortWithStatus(http.StatusNotFound)
 		return
 	}
-	c.BindJSON(&task)
-	db.Save(&task)
-	c.JSON(http.StatusOK, &task)
+	c.BindJSON(&user)
+	db.Save(&user)
+	c.JSON(http.StatusOK, &user)
 }
 
 func CreateUser(c *gin.Context) {
