@@ -52,7 +52,15 @@ func Init() {
 		}
 	}
 
+	if !db.HasTable(&models.Address{}) {
+		err := db.CreateTable(&models.Address{})
+		if err != nil {
+			log.Println("Table already exists")
+		}
+	}
+
 	db.AutoMigrate(&models.User{})
+	db.AutoMigrate(&models.Address{})
 }
 
 //GetDB ...
