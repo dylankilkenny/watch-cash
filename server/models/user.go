@@ -5,21 +5,16 @@ import (
 	"time"
 
 	"github.com/jinzhu/gorm"
-	"github.com/satori/go.uuid"
+	uuid "github.com/satori/go.uuid"
 )
-
-type BaseModel struct {
-	ID        uuid.UUID  `gorm:"primary_key;column:id" json:"id"`
-	CreatedAt time.Time  `json:"createdAt"`
-	UpdatedAt time.Time  `json:"updatedAt"`
-	DeletedAt *time.Time `sql:"index" json:"deletedAt,omitempty"`
-}
 
 type User struct {
 	BaseModel
-	FirstName string `json:"firstname" binding:"required"`
-	LastName  string `json:"lastname"`
-	Email     string `json:"email"`
+	FirstName string    `json:"firstname"`
+	LastName  string    `json:"lastname"`
+	Email     string    `json:"email" binding:"required"`
+	Password  string    `json:"password" binding:"required"`
+	Addresses []Address `json:"addresses"`
 }
 
 func (user *User) BeforeCreate(scope *gorm.Scope) error {
