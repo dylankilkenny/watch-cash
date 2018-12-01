@@ -1,20 +1,22 @@
 package user
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
+	addressModel "github.com/dylankilkenny/watch-cash/server/address/model"
 	"github.com/dylankilkenny/watch-cash/server/db"
-	"github.com/dylankilkenny/watch-cash/server/models"
-	"github.com/dylankilkenny/watch-cash/server/util/crypto"
+	userModel "github.com/dylankilkenny/watch-cash/server/user/model"
 	"github.com/dylankilkenny/watch-cash/server/util/jwt"
 	"github.com/gin-gonic/gin"
 	"github.com/satori/go.uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func SubscribeAddress(c *gin.Context) {
 	db := db.GetDB()
-	var address models.Address
+	var address addressModel.Address
 
 	if err := c.BindJSON(&address); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -23,6 +25,7 @@ func SubscribeAddress(c *gin.Context) {
 		return
 	}
 	ID, err := jwt.Validate(c)
+	fmt.Println("here")
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"status":  "error",
@@ -47,8 +50,8 @@ func SubscribeAddress(c *gin.Context) {
 
 func LoginUser(c *gin.Context) {
 	db := db.GetDB()
-	var userLogin models.User
-	var userDb models.User
+	var userLogin userModel.User
+	var userDb userModel.User
 
 	if err := c.BindJSON(&userLogin); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -64,7 +67,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	if err := crypto.Compare([]byte(userDb.Password), []byte(userLogin.Password)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(userDb.Password), []byte(userLogin.Password)); err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"error": "password is incorrect",
 		})
@@ -73,7 +76,10 @@ func LoginUser(c *gin.Context) {
 
 	token, err := jwt.Token(userDb.ID.String())
 	if err != nil {
-		log.Fatal(err)
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"error": "invalid token",
+		})
+		return
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":    "success",
@@ -83,7 +89,7 @@ func LoginUser(c *gin.Context) {
 }
 
 func SignUpUser(c *gin.Context) {
-	var user models.User
+	var user userModel.User
 	var db = db.GetDB()
 
 	if err := c.BindJSON(&user); err != nil {
@@ -98,12 +104,6 @@ func SignUpUser(c *gin.Context) {
 			"error": "email already exists",
 		})
 		return
-	}
-
-	password, err := crypto.Encrypt([]byte(user.Password))
-	user.Password = string(password)
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	db.Create(&user)

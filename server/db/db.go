@@ -5,7 +5,8 @@ import (
 	"log"
 	"os"
 
-	"github.com/dylankilkenny/watch-cash/server/models"
+	addressModel "github.com/dylankilkenny/watch-cash/server/address/model"
+	userModel "github.com/dylankilkenny/watch-cash/server/user/model"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/lib/pq"
@@ -45,22 +46,22 @@ func Init() {
 	}
 	log.Println("Database connected")
 
-	if !db.HasTable(&models.User{}) {
-		err := db.CreateTable(&models.User{})
+	if !db.HasTable(&userModel.User{}) {
+		err := db.CreateTable(&userModel.User{})
 		if err != nil {
 			log.Println("Table already exists")
 		}
 	}
 
-	if !db.HasTable(&models.Address{}) {
-		err := db.CreateTable(&models.Address{})
+	if !db.HasTable(&addressModel.Address{}) {
+		err := db.CreateTable(&addressModel.Address{})
 		if err != nil {
 			log.Println("Table already exists")
 		}
 	}
 
-	db.AutoMigrate(&models.User{})
-	db.AutoMigrate(&models.Address{})
+	db.AutoMigrate(&userModel.User{})
+	db.AutoMigrate(&addressModel.Address{})
 }
 
 //GetDB ...

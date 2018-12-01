@@ -25,7 +25,10 @@ var allTransactions = []byte(`
   }
 `)
 
-func main() {
+// Stream opens a connection to bitsocket and recieves a stream of transactions
+// broadcasted to the blockchain
+func Stream() {
+	fmt.Println("[bitsocket] Started")
 	b64Query := b64.StdEncoding.EncodeToString(allTransactions)
 	events, err := stream("https://bitsocket.org/s/" + b64Query)
 	if err != nil {
@@ -37,16 +40,18 @@ func main() {
 		err := json.Unmarshal(event, &tx)
 		if err != nil {
 			fmt.Println("JSON ERROR: ", err)
+			fmt.Println("JSON ERROR: Event:", event)
+
 		}
-		fmt.Println(tx.Data)
+
+		for _, addr := range tx.Addresses() {
+			fmt.Println(addr)
+		}
 
 	}
 }
 
-/*
-	Thanks to:
-	https://github.com/peterhellberg/sseclient/blob/master/sseclient.go
-*/
+//	https://github.com/peterhellberg/sseclient/blob/master/sseclient.go
 
 // stream opens a connection to a url and recieves a stream of server sent events
 func stream(url string) (events chan []byte, err error) {
