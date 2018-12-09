@@ -1,4 +1,4 @@
-package bitsocket
+package transaction
 
 // Transaction struct
 type Transaction struct {

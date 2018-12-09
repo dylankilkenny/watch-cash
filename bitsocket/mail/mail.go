@@ -8,7 +8,7 @@ import (
 	"net/smtp"
 )
 
-type Request struct {
+type Email struct {
 	from    string
 	to      []string
 	subject string
@@ -18,17 +18,18 @@ type Request struct {
 var config = Config{}
 
 const (
-	MIME = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
+	mime = "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n\n"
 )
 
-func NewRequest(to []string, subject string) *Request {
-	return &Request{
+// NewEmail returns a new Request obj
+func NewEmail(to []string) *Email {
+	return &Email{
 		to:      to,
-		subject: subject,
+		subject: "[watch-cash] Address Activity Detected",
 	}
 }
 
-func (r *Request) parseTemplate(fileName string, data interface{}) error {
+func (r *Email) parseTemplate(fileName string, data interface{}) error {
 	t, err := template.ParseFiles(fileName)
 	if err != nil {
 		return err
@@ -41,8 +42,8 @@ func (r *Request) parseTemplate(fileName string, data interface{}) error {
 	return nil
 }
 
-func (r *Request) sendMail() bool {
-	body := "To: " + r.to[0] + "\r\nSubject: " + r.subject + "\r\n" + MIME + "\r\n" + r.body
+func (r *Email) sendMail() bool {
+	body := "To: " + r.to[0] + "\r\nSubject: " + r.subject + "\r\n" + mime + "\r\n" + r.body
 	SMTP := fmt.Sprintf("%s:%d", config.Server, config.Port)
 	fmt.Println(config.Email)
 	if err := smtp.SendMail(SMTP, smtp.PlainAuth("", config.Email, config.Password, config.Server), config.Email, r.to, []byte(body)); err != nil {
@@ -54,7 +55,7 @@ func (r *Request) sendMail() bool {
 }
 
 //Send processes the email
-func (r *Request) Send(templateName string, items interface{}) {
+func (r *Email) Send(templateName string, items interface{}) {
 	config.Load()
 	err := r.parseTemplate(templateName, items)
 	if err != nil {
