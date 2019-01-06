@@ -23,7 +23,7 @@ type User struct {
 	LastName  string            `json:"lastname"`
 	Email     string            `json:"email" binding:"required"`
 	Password  string            `json:"password" binding:"required"`
-	Addresses []address.Address `json:"addresses"`
+	Addresses []address.Address `gorm:"foreignkey:UserID";json:"addresses"`
 }
 
 func (user *User) BeforeCreate(scope *gorm.Scope) error {
