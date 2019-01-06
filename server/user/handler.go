@@ -109,3 +109,13 @@ func SignUpUser(c *gin.Context) {
 	db.Create(&user)
 	c.JSON(http.StatusOK, &user)
 }
+
+func SubscribedUsers(address string) ([]userModel.User, error) {
+	var users []userModel.User
+	var db = db.GetDB()
+
+	if err := db.Joins("JOIN addresses ON addresses.user_id = users.id").Where("addresses.address = ?", address).Find(&users).Error; err == nil {
+		return users, err
+	}
+	return users, nil
+}
