@@ -108,7 +108,7 @@ func listen() {
 		}
 		tx := castTransaction(event.Data)
 		for _, input := range tx.From {
-			users, err := subscribedUsers(input.Sender[12:])
+			users, err := user.SubscribedUsers(input.Sender[12:])
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -127,7 +127,7 @@ func listen() {
 			}
 		}
 		for _, output := range tx.To {
-			users, err := subscribedUsers(output.Receiver[12:])
+			users, err := user.SubscribedUsers(output.Receiver[12:])
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -150,14 +150,4 @@ func sendMail(user userModel.User, address, txType, amount, txID string) {
 		"amount":   amount,
 		"txID":     txID,
 	})
-}
-
-func subscribedUsers(address string) ([]userModel.User, error) {
-	var users []userModel.User
-	var db = db.GetDB()
-
-	if err := db.Joins("JOIN addresses ON addresses.user_id = users.id").Where("addresses.address = ?", address).Find(&users).Error; err == nil {
-		return users, err
-	}
-	return users, nil
 }
