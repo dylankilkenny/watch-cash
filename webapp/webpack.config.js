@@ -1,5 +1,9 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 module.exports = {
+  devServer: {
+    contentBase: './dist',
+    historyApiFallback: true
+  },
   module: {
     rules: [
       {

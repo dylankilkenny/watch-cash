@@ -42,7 +42,7 @@ const signup = () => (
         </Field>
         <Field>
           <Control>
-            <Button isColor="success">Submit</Button>
+            <Button isColor="primary">Submit</Button>
           </Control>
         </Field>
       </Box>

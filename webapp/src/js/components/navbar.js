@@ -39,10 +39,18 @@ class Navigationbar extends React.Component {
 
   render() {
     return (
-      <Navbar style={{ border: 'solid 1px ', margin: '0' }}>
+      <Navbar style={{ margin: '0', backgroundColor: 'rgb(0, 0, 0, 0)' }}>
         <NavbarBrand>
           <NavbarItem>
-            <Title isSize={3}>watch.cash</Title>
+            <Link
+              to={{
+                pathname: '/'
+              }}
+            >
+              <Title style={{ color: 'white' }} isSize={3}>
+                watch.cash
+              </Title>
+            </Link>
           </NavbarItem>
           <NavbarBurger
             isActive={this.state.isActive}
@@ -58,8 +66,27 @@ class Navigationbar extends React.Component {
                     pathname: '/login'
                   }}
                 >
-                  <Button isColor="success" isOutlined>
+                  <Button
+                    style={{ margin: 10 }}
+                    isColor="light"
+                    isOutlined
+                    isSize="medium"
+                  >
                     Login
+                  </Button>
+                </Link>
+                <Link
+                  to={{
+                    pathname: '/signup'
+                  }}
+                >
+                  <Button
+                    style={{ margin: 10 }}
+                    isColor="light"
+                    isOutlined
+                    isSize="medium"
+                  >
+                    Sign Up
                   </Button>
                 </Link>
               </Field>
