@@ -25,7 +25,7 @@ func getEnv(key, fallback string) string {
 // Init creates a connection to mysql database and
 // migrates any new models
 func Init() {
-	user := getEnv("PG_USER", "dyl")
+	user := getEnv("PG_USER", "dylankilkenny")
 	password := getEnv("PG_PASSWORD", "")
 	host := getEnv("PG_HOST", "localhost")
 	port := getEnv("PG_PORT", "5432")

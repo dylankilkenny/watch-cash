@@ -1,0 +1,24 @@
+.nav-text>a {
+    text-decoration: none;
+    color: #efefef;
+}
+
+/* ************************ */
+
+#root {
+    height: 100vh;
+}
+
+body {
+    background-image: linear-gradient(to bottom, #05371f, #034421, #045122, #0c5e20, #196b1c);
+    margin: 0;
+    font-family: Arial;
+}
+
+.landing-header {
+    color: white
+}
+
+.landing-subtitle {
+    color: rgb(226, 224, 220)
+}

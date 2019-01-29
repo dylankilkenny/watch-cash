@@ -1,4 +1,4 @@
-import 'bulma/css/bulma.css';
+import './css/index.css';
 import ReactDOM from 'react-dom';
 import React from 'react';
 import {
@@ -8,11 +8,11 @@ import {
   BrowserRouter as Router
 } from 'react-router-dom';
 import withAnalytics, { initAnalytics } from 'react-with-analytics';
-import NavBar from './js/components/navbar';
-import SignUp from './js/components/signup';
-import Landing from './js/components/landing';
-import Login from './js/components/login';
-import Dashboard from './js/components/dashboard';
+import NavBar from './js/components/container/navbar';
+import SignUp from './js/components/container/signup';
+import Landing from './js/components/presentational/landing';
+import Login from './js/components/container/login';
+import Dashboard from './js/components/container/dashboard';
 
 // initAnalytics(GA_KEY);
 

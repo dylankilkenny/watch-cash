@@ -25,7 +25,6 @@ func SubscribeAddress(c *gin.Context) {
 		return
 	}
 	ID, err := jwt.Validate(c)
-	fmt.Println("here")
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"status":  "error",
@@ -55,37 +54,78 @@ func LoginUser(c *gin.Context) {
 
 	if err := c.BindJSON(&userLogin); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"status": 400,
+			"detail": "email/password is missing",
 		})
 		return
 	}
 
 	if err := db.Where("email = ?", userLogin.Email).First(&userDb).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"error": "email does not exist",
+			"status": 404,
+			"detail": "email does not exist",
 		})
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(userDb.Password), []byte(userLogin.Password)); err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"error": "password is incorrect",
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"status": 401,
+			"code":   "pass_wrong",
+			"detail": "password is incorrect",
 		})
 		return
 	}
 
 	token, err := jwt.Token(userDb.ID.String())
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"error": "invalid token",
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"status": 401,
+			"code":   "expired_token",
+			"detail": "token is expired",
 		})
 		return
 	}
+
 	c.JSON(http.StatusOK, gin.H{
-		"status":    "success",
+		"status":    200,
 		"token":     token,
 		"firstname": userDb.FirstName,
 	})
+}
+
+type token struct {
+	Token string `json:"token" binding:"required"`
+}
+
+func ValidateToken(c *gin.Context) {
+	var token token
+
+	if err := c.BindJSON(&token); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"status": 400,
+			"detail": "token is missing",
+		})
+		return
+	}
+	fmt.Println(token)
+
+	_, err := jwt.ValidateString(token.Token)
+	if err != nil {
+		fmt.Println(err)
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+			"status": 401,
+			"code":   "invalid_token",
+			"detail": "token is not valid",
+		})
+		return
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"status": 200,
+			"code":   "valid_token",
+			"detail": "token is valid",
+		})
+	}
 }
 
 func SignUpUser(c *gin.Context) {

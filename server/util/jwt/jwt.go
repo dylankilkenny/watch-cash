@@ -45,3 +45,17 @@ func Validate(c *gin.Context) (string, error) {
 		return "", err
 	}
 }
+
+func ValidateString(token string) (bool, error) {
+	_, err := jwt_lib.Parse(token, func(token *jwt_lib.Token) (interface{}, error) {
+		// Don't forget to validate the alg is what you expect:
+		if _, ok := token.Method.(*jwt_lib.SigningMethodHMAC); !ok {
+			return false, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(secretkey), nil
+	})
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}

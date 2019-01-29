@@ -14,6 +14,7 @@ import (
 	"github.com/dylankilkenny/watch-cash/server/mail"
 	"github.com/dylankilkenny/watch-cash/server/user"
 	userModel "github.com/dylankilkenny/watch-cash/server/user/model"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,6 +25,11 @@ func main() {
 	go listen()
 
 	router := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:8080"}
+	router.Use(cors.New(config))
+
 	db.Init()
 
 	public := router.Group("/api")
@@ -36,10 +42,11 @@ func main() {
 		})
 	})
 	public.POST("/signup", user.SignUpUser)
+	public.POST("/validate", user.ValidateToken)
 	public.POST("/login", user.LoginUser)
 	private.Use(auth(secretkey))
 	private.POST("/subscribe", user.SubscribeAddress)
-	router.Run()
+	router.Run(":3001")
 
 }
 

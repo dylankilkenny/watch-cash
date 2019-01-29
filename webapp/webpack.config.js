@@ -1,11 +1,21 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
+const path = require('path');
 module.exports = {
   devServer: {
     contentBase: './dist',
-    historyApiFallback: true
+    historyApiFallback: true,
+    headers: { 'Access-Control-Allow-Origin': '*' }
+  },
+  entry: {
+    javascript: './src/index.js',
+    html: './src/index.html'
   },
   module: {
     rules: [
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
+      },
       {
         test: /\.js$/,
         exclude: /node_modules/,
@@ -20,11 +30,6 @@ module.exports = {
             loader: 'html-loader'
           }
         ]
-      },
-      {
-        test: /\.css$/,
-        include: /node_modules/,
-        loaders: ['style-loader', 'css-loader']
       },
       {
         test: /\.(png|woff|woff2|eot|ttf|svg)$/,
