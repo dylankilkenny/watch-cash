@@ -49,6 +49,7 @@ func main() {
 	private.Use(auth(secretkey))
 	private.GET("/address", user.GetSubscribedAddresses)
 	private.POST("/address", user.SubscribeToAddress)
+	private.POST("/remove", user.RemoveSubscribedAddress)
 	router.Run(":3001")
 
 }

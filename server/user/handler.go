@@ -24,19 +24,28 @@ func SubscribeToAddress(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(address)
+
 	ID, err := jwt.Validate(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
-			"status":  "error",
-			"message": "invalid token",
+			"status": 401,
+			"code":   "invalid_token",
+			"detail": "token is not valid",
 		})
 		return
 	}
 
 	if !db.Joins("JOIN users ON addresses.user_id = ?", ID).Where("addresses.address = ?", address.Address).First(&address).RecordNotFound() {
+		if address.DeletedAt != nil {
+			address.DeletedAt = nil
+			db.Save(&address)
+			c.JSON(http.StatusOK, &address)
+			return
+		}
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "already subscribed to address",
+			"status": 400,
+			"code":   "already_subscribed",
+			"detail": "already subscribed to address",
 		})
 		return
 	}
@@ -47,7 +56,10 @@ func SubscribeToAddress(c *gin.Context) {
 	}
 	address.UserID = userID
 	db.Create(&address)
-	c.JSON(http.StatusOK, &address)
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"detail": "address subscribed",
+	})
 }
 
 type subscribedAddressesResponse struct {
@@ -67,8 +79,8 @@ func GetSubscribedAddresses(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(ID)
-	if err := db.Select("address, created_at").Where("user_id = ?", ID).Find(&subscribedAddresses).Error; err != nil {
+
+	if err := db.Select("address, created_at").Where("user_id = ? and deleted_at is NULL", ID).Find(&subscribedAddresses).Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
 			"error": err,
 		})
@@ -76,16 +88,60 @@ func GetSubscribedAddresses(c *gin.Context) {
 
 	var addresses []subscribedAddressesResponse
 	for _, element := range subscribedAddresses {
+		fmt.Println(element)
 		addresses = append(addresses, subscribedAddressesResponse{
 			CreatedAt: element.CreatedAt.Format("01-02-2006"),
 			Address:   element.Address,
 		})
 
 	}
-
+	if len(addresses) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"status": 401,
+			"detail": "No addresses found",
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status":    200,
 		"addresses": addresses,
+	})
+}
+
+func RemoveSubscribedAddress(c *gin.Context) {
+	db := db.GetDB()
+	var address addressModel.Address
+
+	if err := c.BindJSON(&address); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ID, err := jwt.Validate(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"status": 401,
+			"code":   "invalid_token",
+			"detail": "token is not valid",
+		})
+		return
+	}
+
+	if err := db.Joins("JOIN users ON addresses.user_id = ?", ID).Where("addresses.address = ?", address.Address).First(&address).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": 400,
+			"detail": "address not found",
+		})
+		return
+	}
+
+	db.Delete(&address)
+
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"detail": "address removed",
 	})
 }
 

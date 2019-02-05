@@ -74,5 +74,43 @@ export default {
           return json.code;
         }
       });
+  },
+  WatchAddress: (address, token) => {
+    const myHeaders = new Headers();
+    myHeaders.append('Content-Type', 'application/json');
+    myHeaders.append('Authorization', `Bearer ${token}`);
+    return fetch('http://0.0.0.0:3001/api/private/address', {
+      method: 'POST',
+      body: JSON.stringify({
+        address: address
+      }),
+      credentials: 'include',
+      headers: myHeaders
+    })
+      .then(response => {
+        return response.json();
+      })
+      .then(json => {
+        return json;
+      });
+  },
+  RemoveAddress: (address, token) => {
+    const myHeaders = new Headers();
+    myHeaders.append('Content-Type', 'application/json');
+    myHeaders.append('Authorization', `Bearer ${token}`);
+    return fetch('http://0.0.0.0:3001/api/private/remove', {
+      method: 'POST',
+      body: JSON.stringify({
+        address: address
+      }),
+      credentials: 'include',
+      headers: myHeaders
+    })
+      .then(response => {
+        return response.json();
+      })
+      .then(json => {
+        return json;
+      });
   }
 };
