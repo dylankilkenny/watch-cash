@@ -1,6 +1,10 @@
-.nav-text>a {
+.nav-text {
     text-decoration: none;
-    color: #efefef;
+    color: #efefef !important;
+}
+
+.card-pad {
+    margin-top: 20px;
 }
 
 /* ************************ */

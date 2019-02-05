@@ -8,7 +8,6 @@ import {
   BrowserRouter as Router
 } from 'react-router-dom';
 import withAnalytics, { initAnalytics } from 'react-with-analytics';
-import NavBar from './js/components/container/navbar';
 import SignUp from './js/components/container/signup';
 import Landing from './js/components/presentational/landing';
 import Login from './js/components/container/login';
@@ -32,12 +31,10 @@ class Main extends React.Component {
     return (
       <Router>
         <div>
-          <NavBar />
           <AppWithRouter />
         </div>
       </Router>
     );
   }
 }
-
 ReactDOM.render(<Main />, document.getElementById('root'));

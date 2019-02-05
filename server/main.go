@@ -28,6 +28,8 @@ func main() {
 
 	config := cors.DefaultConfig()
 	config.AllowOrigins = []string{"http://localhost:8080"}
+	config.AllowCredentials = true
+	config.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization")
 	router.Use(cors.New(config))
 
 	db.Init()
@@ -45,7 +47,8 @@ func main() {
 	public.POST("/validate", user.ValidateToken)
 	public.POST("/login", user.LoginUser)
 	private.Use(auth(secretkey))
-	private.POST("/subscribe", user.SubscribeAddress)
+	private.GET("/address", user.GetSubscribedAddresses)
+	private.POST("/address", user.SubscribeToAddress)
 	router.Run(":3001")
 
 }

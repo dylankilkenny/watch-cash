@@ -14,7 +14,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func SubscribeAddress(c *gin.Context) {
+func SubscribeToAddress(c *gin.Context) {
 	db := db.GetDB()
 	var address addressModel.Address
 
@@ -24,6 +24,7 @@ func SubscribeAddress(c *gin.Context) {
 		})
 		return
 	}
+	fmt.Println(address)
 	ID, err := jwt.Validate(c)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
@@ -32,19 +33,60 @@ func SubscribeAddress(c *gin.Context) {
 		})
 		return
 	}
-	if err := db.Where("address = ? and user_id = ?", address.Address, ID).First(&address).Error; err == nil {
+
+	if !db.Joins("JOIN users ON addresses.user_id = ?", ID).Where("addresses.address = ?", address.Address).First(&address).RecordNotFound() {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "already subscribed to address",
 		})
 		return
 	}
-	userId, err := uuid.FromString(ID)
+
+	userID, err := uuid.FromString(ID)
 	if err != nil {
 		log.Fatal(err)
 	}
-	address.UserID = userId
+	address.UserID = userID
 	db.Create(&address)
 	c.JSON(http.StatusOK, &address)
+}
+
+type subscribedAddressesResponse struct {
+	CreatedAt string `json:"created_at"`
+	Address   string `json:"address"`
+}
+
+func GetSubscribedAddresses(c *gin.Context) {
+	db := db.GetDB()
+	var subscribedAddresses []addressModel.Address
+	ID, err := jwt.Validate(c)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"status": 401,
+			"code":   "invalid_token",
+			"detail": "token is not valid",
+		})
+		return
+	}
+	fmt.Println(ID)
+	if err := db.Select("address, created_at").Where("user_id = ?", ID).Find(&subscribedAddresses).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"error": err,
+		})
+	}
+
+	var addresses []subscribedAddressesResponse
+	for _, element := range subscribedAddresses {
+		addresses = append(addresses, subscribedAddressesResponse{
+			CreatedAt: element.CreatedAt.Format("01-02-2006"),
+			Address:   element.Address,
+		})
+
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":    200,
+		"addresses": addresses,
+	})
 }
 
 func LoginUser(c *gin.Context) {
@@ -134,20 +176,27 @@ func SignUpUser(c *gin.Context) {
 
 	if err := c.BindJSON(&user); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
+			"status": 400,
+			"code":   "invalid_form",
+			"detail": "invalid form",
 		})
 		return
 	}
 
 	if err := db.Where("email = ?", user.Email).First(&user).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "email already exists",
+			"status": 400,
+			"code":   "email_taken",
+			"error":  "email already exists",
 		})
 		return
 	}
 
 	db.Create(&user)
-	c.JSON(http.StatusOK, &user)
+	c.JSON(http.StatusOK, gin.H{
+		"status": 200,
+		"detail": "user sign up success",
+	})
 }
 
 func SubscribedUsers(address string) ([]userModel.User, error) {
