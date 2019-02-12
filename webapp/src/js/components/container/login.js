@@ -26,7 +26,7 @@ export default class Login extends React.Component {
     if (success) {
       this.props.history.push('/dashboard');
     } else {
-      this.setState({ warning: true });
+      this.setState({ danger: true });
     }
   }
 
@@ -45,7 +45,7 @@ export default class Login extends React.Component {
             <Col xs={12} md={3} />
             <Col xs={12} md={6}>
               <ConditionalAlert
-                isActive={this.state.warning}
+                isActive={this.state.danger}
                 hasStyle="danger"
                 content="Uh oh! Your email/password is incorrect"
               />

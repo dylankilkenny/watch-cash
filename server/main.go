@@ -32,7 +32,8 @@ func main() {
 	config.AddAllowHeaders("Origin", "Content-Length", "Content-Type", "Authorization")
 	router.Use(cors.New(config))
 
-	db.Init()
+	debugMode := false
+	db.Init(debugMode)
 
 	public := router.Group("/api")
 	private := router.Group("/api/private")

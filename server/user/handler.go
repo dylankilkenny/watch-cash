@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -35,13 +34,7 @@ func SubscribeToAddress(c *gin.Context) {
 		return
 	}
 
-	if !db.Joins("JOIN users ON addresses.user_id = ?", ID).Where("addresses.address = ?", address.Address).First(&address).RecordNotFound() {
-		if address.DeletedAt != nil {
-			address.DeletedAt = nil
-			db.Save(&address)
-			c.JSON(http.StatusOK, &address)
-			return
-		}
+	if err := db.Where("address = ? and user_id = ?", address.Address, ID).First(&address).Error; err == nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": 400,
 			"code":   "already_subscribed",
@@ -88,7 +81,6 @@ func GetSubscribedAddresses(c *gin.Context) {
 
 	var addresses []subscribedAddressesResponse
 	for _, element := range subscribedAddresses {
-		fmt.Println(element)
 		addresses = append(addresses, subscribedAddressesResponse{
 			CreatedAt: element.CreatedAt.Format("01-02-2006"),
 			Address:   element.Address,
@@ -206,11 +198,9 @@ func ValidateToken(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(token)
 
 	_, err := jwt.ValidateString(token.Token)
 	if err != nil {
-		fmt.Println(err)
 		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"status": 401,
 			"code":   "invalid_token",

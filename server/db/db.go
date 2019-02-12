@@ -24,7 +24,7 @@ func getEnv(key, fallback string) string {
 
 // Init creates a connection to mysql database and
 // migrates any new models
-func Init() {
+func Init(debug bool) {
 	user := getEnv("PG_USER", "dylankilkenny")
 	password := getEnv("PG_PASSWORD", "")
 	host := getEnv("PG_HOST", "localhost")
@@ -40,12 +40,13 @@ func Init() {
 	)
 
 	db, err = gorm.Open("postgres", dbinfo)
+	db.LogMode(debug)
+
 	if err != nil {
 		log.Println("Failed to connect to database")
 		panic(err)
 	}
 	log.Println("Database connected")
-
 	if !db.HasTable(&userModel.User{}) {
 		err := db.CreateTable(&userModel.User{})
 		if err != nil {
