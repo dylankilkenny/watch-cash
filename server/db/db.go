@@ -5,8 +5,7 @@ import (
 	"log"
 	"os"
 
-	addressModel "github.com/dylankilkenny/watch-cash/server/address/model"
-	userModel "github.com/dylankilkenny/watch-cash/server/user/model"
+	"github.com/dylankilkenny/watch-cash/server/user"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/lib/pq"
@@ -25,14 +24,14 @@ func getEnv(key, fallback string) string {
 // Init creates a connection to mysql database and
 // migrates any new models
 func Init(debug bool) {
-	user := getEnv("PG_USER", "dylankilkenny")
+	userDb := getEnv("PG_USER", "dylankilkenny")
 	password := getEnv("PG_PASSWORD", "")
 	host := getEnv("PG_HOST", "localhost")
 	port := getEnv("PG_PORT", "5432")
 	database := getEnv("PG_DB", "watchcash")
 
 	dbinfo := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
-		user,
+		userDb,
 		password,
 		host,
 		port,
@@ -47,22 +46,22 @@ func Init(debug bool) {
 		panic(err)
 	}
 	log.Println("Database connected")
-	if !db.HasTable(&userModel.User{}) {
-		err := db.CreateTable(&userModel.User{})
+	if !db.HasTable(&user.User{}) {
+		err := db.CreateTable(&user.User{})
 		if err != nil {
 			log.Println("Table already exists")
 		}
 	}
 
-	if !db.HasTable(&addressModel.Address{}) {
-		err := db.CreateTable(&addressModel.Address{})
+	if !db.HasTable(&user.Address{}) {
+		err := db.CreateTable(&user.Address{})
 		if err != nil {
 			log.Println("Table already exists")
 		}
 	}
 
-	db.AutoMigrate(&userModel.User{})
-	db.AutoMigrate(&addressModel.Address{})
+	db.AutoMigrate(&user.User{})
+	db.AutoMigrate(&user.Address{})
 }
 
 //GetDB ...

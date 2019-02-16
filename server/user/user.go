@@ -1,21 +1,32 @@
 package user
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
-	addressModel "github.com/dylankilkenny/watch-cash/server/address/model"
-	"github.com/dylankilkenny/watch-cash/server/db"
-	userModel "github.com/dylankilkenny/watch-cash/server/user/model"
 	"github.com/dylankilkenny/watch-cash/server/util/jwt"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
+type subscribedAddressesResponse struct {
+	CreatedAt string `json:"created_at"`
+	Address   string `json:"address"`
+}
+
+type token struct {
+	Token string `json:"token" binding:"required"`
+}
+
 func SubscribeToAddress(c *gin.Context) {
-	db := db.GetDB()
-	var address addressModel.Address
+	db, ok := c.MustGet("db").(*gorm.DB)
+	if !ok {
+		fmt.Println("Failed to fetch db")
+	}
+	var address Address
 
 	if err := c.BindJSON(&address); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -26,7 +37,7 @@ func SubscribeToAddress(c *gin.Context) {
 
 	ID, err := jwt.Validate(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"status": 401,
 			"code":   "invalid_token",
 			"detail": "token is not valid",
@@ -55,17 +66,15 @@ func SubscribeToAddress(c *gin.Context) {
 	})
 }
 
-type subscribedAddressesResponse struct {
-	CreatedAt string `json:"created_at"`
-	Address   string `json:"address"`
-}
-
 func GetSubscribedAddresses(c *gin.Context) {
-	db := db.GetDB()
-	var subscribedAddresses []addressModel.Address
+	db, ok := c.MustGet("db").(*gorm.DB)
+	if !ok {
+		fmt.Println("Failed to fetch db")
+	}
+	var subscribedAddresses []Address
 	ID, err := jwt.Validate(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"status": 401,
 			"code":   "invalid_token",
 			"detail": "token is not valid",
@@ -88,7 +97,7 @@ func GetSubscribedAddresses(c *gin.Context) {
 
 	}
 	if len(addresses) == 0 {
-		c.JSON(http.StatusOK, gin.H{
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"status": 401,
 			"detail": "No addresses found",
 		})
@@ -101,8 +110,11 @@ func GetSubscribedAddresses(c *gin.Context) {
 }
 
 func RemoveSubscribedAddress(c *gin.Context) {
-	db := db.GetDB()
-	var address addressModel.Address
+	db, ok := c.MustGet("db").(*gorm.DB)
+	if !ok {
+		fmt.Println("Failed to fetch db")
+	}
+	var address Address
 
 	if err := c.BindJSON(&address); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -113,7 +125,7 @@ func RemoveSubscribedAddress(c *gin.Context) {
 
 	ID, err := jwt.Validate(c)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
 			"status": 401,
 			"code":   "invalid_token",
 			"detail": "token is not valid",
@@ -138,9 +150,12 @@ func RemoveSubscribedAddress(c *gin.Context) {
 }
 
 func LoginUser(c *gin.Context) {
-	db := db.GetDB()
-	var userLogin userModel.User
-	var userDb userModel.User
+	db, ok := c.MustGet("db").(*gorm.DB)
+	if !ok {
+		fmt.Println("Failed to fetch db")
+	}
+	var userLogin User
+	var userDb User
 
 	if err := c.BindJSON(&userLogin); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -169,12 +184,7 @@ func LoginUser(c *gin.Context) {
 
 	token, err := jwt.Token(userDb.ID.String())
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-			"status": 401,
-			"code":   "expired_token",
-			"detail": "token is expired",
-		})
-		return
+		fmt.Printf("Error creating token for user %v", userDb.ID)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -182,10 +192,6 @@ func LoginUser(c *gin.Context) {
 		"token":     token,
 		"firstname": userDb.FirstName,
 	})
-}
-
-type token struct {
-	Token string `json:"token" binding:"required"`
 }
 
 func ValidateToken(c *gin.Context) {
@@ -217,8 +223,11 @@ func ValidateToken(c *gin.Context) {
 }
 
 func SignUpUser(c *gin.Context) {
-	var user userModel.User
-	var db = db.GetDB()
+	db, ok := c.MustGet("db").(*gorm.DB)
+	if !ok {
+		fmt.Println("Failed to fetch db")
+	}
+	var user User
 
 	if err := c.BindJSON(&user); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
@@ -243,14 +252,4 @@ func SignUpUser(c *gin.Context) {
 		"status": 200,
 		"detail": "user sign up success",
 	})
-}
-
-func SubscribedUsers(address string) ([]userModel.User, error) {
-	var users []userModel.User
-	var db = db.GetDB()
-
-	if err := db.Joins("JOIN addresses ON addresses.user_id = users.id").Where("addresses.address = ?", address).Find(&users).Error; err == nil {
-		return users, err
-	}
-	return users, nil
 }

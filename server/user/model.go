@@ -1,10 +1,9 @@
-package model
+package user
 
 import (
 	"log"
 	"time"
 
-	address "github.com/dylankilkenny/watch-cash/server/address/model"
 	"github.com/jinzhu/gorm"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -19,11 +18,17 @@ type BaseModel struct {
 
 type User struct {
 	BaseModel
-	FirstName string            `json:"firstname"`
-	LastName  string            `json:"lastname"`
-	Email     string            `json:"email" binding:"required"`
-	Password  string            `json:"password" binding:"required"`
-	Addresses []address.Address `gorm:"foreignkey:UserID";json:"addresses"`
+	FirstName string    `json:"firstname"`
+	LastName  string    `json:"lastname"`
+	Email     string    `json:"email" binding:"required"`
+	Password  string    `json:"password" binding:"required"`
+	Addresses []Address `gorm:"foreignkey:UserID";json:"addresses"`
+}
+
+type Address struct {
+	BaseModel
+	Address string    `json:"address"`
+	UserID  uuid.UUID `json:"user_id"`
 }
 
 func (user *User) BeforeCreate(scope *gorm.Scope) error {
@@ -38,6 +43,17 @@ func (user *User) BeforeCreate(scope *gorm.Scope) error {
 		scope.SetColumn("Password", string(pw))
 	}
 
+	return nil
+}
+
+func (address *Address) BeforeCreate(scope *gorm.Scope) error {
+	scope.SetColumn("CreatedAt", time.Now())
+	uuid, err := uuid.NewV4()
+	if err != nil {
+		log.Println("Uuid err")
+		panic(err)
+	}
+	scope.SetColumn("ID", uuid.String())
 	return nil
 }
 
