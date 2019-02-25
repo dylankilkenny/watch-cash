@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,12 +11,17 @@ import (
 
 	"github.com/dylankilkenny/watch-cash/server/router"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 )
 
 var r *gin.Engine
 
 func TestMain(m *testing.M) {
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	InitDB()
 	r = router.SetupRouter(db, false)
 	code := m.Run()
@@ -224,7 +230,7 @@ func TestRemoveSubscribedAddressRoute(t *testing.T) {
 		t.Helper()
 		w := httptest.NewRecorder()
 		j, _ := json.Marshal(credentials)
-		req, _ := http.NewRequest("POST", "/api/private/remove", bytes.NewBuffer(j))
+		req, _ := http.NewRequest("DELETE", "/api/private/remove", bytes.NewBuffer(j))
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Add("Authorization", "Bearer "+token)
 		r.ServeHTTP(w, req)
@@ -310,4 +316,49 @@ func TestValidateTokenRoute(t *testing.T) {
 		got := makeRequest(t, body)
 		assertCorrectStatusCode(t, want, got)
 	})
+}
+
+func TestSubscribedUsers(t *testing.T) {
+
+	err := godotenv.Load("../.env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	makeRequest := func(t *testing.T, credentials map[string]string) int {
+		t.Helper()
+		w := httptest.NewRecorder()
+		j, _ := json.Marshal(credentials)
+		req, _ := http.NewRequest("POST", "/api/secret/users", bytes.NewBuffer(j))
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("API_KEY", os.Getenv("WATCHCASHAPIKEY"))
+		r.ServeHTTP(w, req)
+		return w.Code
+	}
+
+	assertCorrectStatusCode := func(t *testing.T, want, got int) {
+		t.Helper()
+		ok := assert.Equal(t, want, got)
+		if !ok {
+			t.Errorf("Status Code is not %v. Got %v", want, got)
+		}
+	}
+
+	t.Run("Successful retrieval of users", func(t *testing.T) {
+		user := CreateUser()
+		AddAddress(user)
+		body := map[string]string{"address": "qrwd7tucj2l6rjcgv5cr2n4t8ws83ghsjqpar98qpt"}
+		want := 200
+		got := makeRequest(t, body)
+		assertCorrectStatusCode(t, want, got)
+		CreateCleanDB()
+	})
+
+	t.Run("No subscribed users were found", func(t *testing.T) {
+		want := 400
+		body := map[string]string{"address": "qrwd7tucj2l6rjcgv5cr2n4t8ws83ghsjqpar98qpt"}
+		got := makeRequest(t, body)
+		assertCorrectStatusCode(t, want, got)
+	})
+
 }

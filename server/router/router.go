@@ -36,6 +36,7 @@ func SetupRouter(db *gorm.DB, logging bool) *gin.Engine {
 
 	public := router.Group("/api")
 	private := router.Group("/api/private")
+	secret := router.Group("/api/secret")
 
 	public.POST("/signup", user.SignUpUser)
 	public.POST("/validate", user.ValidateToken)
@@ -43,7 +44,8 @@ func SetupRouter(db *gorm.DB, logging bool) *gin.Engine {
 	private.Use(auth(secretkey))
 	private.GET("/address", user.GetSubscribedAddresses)
 	private.POST("/address", user.SubscribeToAddress)
-	private.POST("/remove", user.RemoveSubscribedAddress)
+	private.DELETE("/remove", user.RemoveSubscribedAddress)
+	secret.POST("/users", user.SubscribedUsers)
 
 	return router
 }
