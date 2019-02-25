@@ -44,7 +44,7 @@ type User struct {
 }
 
 type TxInputAmount struct {
-	Amount int `json:"amount"`
+	Amount float64 `json:"amount"`
 }
 
 func main() {
@@ -54,11 +54,8 @@ func main() {
 	}
 
 	version := 3
-	bitdburl := "https://bitdb.network/q/"
-	bitdb := B.New(version, "qrqm04uwrd0wwaguxea079h0znswwt3quuejvl6zd6", bitdburl)
-
-	bitsocketurl := "http://192.168.0.214:4000/s/"
-	bitsocket := B.NewSocket(version, bitsocketurl)
+	bitdb := B.New(version, "qrqm04uwrd0wwaguxea079h0znswwt3quuejvl6zd6", os.Getenv("BITDB_URL"))
+	bitsocket := B.NewSocket(version, os.Getenv("BITSOCKET_URL"))
 
 	jq := ".[] | { txId: .tx.h, from: [.in[] | { prevTransactionId: .e.h, sender: .e.a }], to: [.out[] | { receiver: .e.a?, amount: .e.v? }] }"
 	events, err := bitsocket.Stream("", jq)
@@ -93,10 +90,8 @@ func checkTxInputs(tx transaction, bitdb *B.Request) {
 			if err != nil {
 				fmt.Println("BitDb Request:", err)
 			}
-			confirmed, _ := resp.Confirmed.(map[string]interface{})
-			var amount TxInputAmount
-			amount = json.Unmarshal(resp.Confirmed, TxInputAmount)
-			bch := float64(confirmed["amount"].(float64)) / math.Pow10(int(8))
+			confirmed, _ := resp.Confirmed.(TxInputAmount)
+			bch := float64(confirmed.Amount) / math.Pow10(int(8))
 			sendMail(user, input.Sender, "sent", fmt.Sprintf("%f", bch), tx.TxID)
 		}
 	}
