@@ -8,8 +8,8 @@ import (
 
 	"github.com/dylankilkenny/watch-cash/server/util/jwt"
 	"github.com/gin-gonic/gin"
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
-	"github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 

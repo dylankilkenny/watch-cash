@@ -21,14 +21,14 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-// Init creates a connection to mysql database and
+// Init creates a connection to postgres database and
 // migrates any new models
 func Init(debug bool) {
-	userDb := getEnv("PG_USER", "dylankilkenny")
+	userDb := getEnv("PG_USER", "")
 	password := getEnv("PG_PASSWORD", "")
-	host := getEnv("PG_HOST", "localhost")
+	host := getEnv("PG_HOST", "")
 	port := getEnv("PG_PORT", "5432")
-	database := getEnv("PG_DB", "watchcash")
+	database := getEnv("PG_DB", "")
 
 	dbinfo := fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=disable",
 		userDb,
@@ -37,6 +37,8 @@ func Init(debug bool) {
 		port,
 		database,
 	)
+
+	fmt.Println(dbinfo)
 
 	db, err = gorm.Open("postgres", dbinfo)
 	db.LogMode(debug)

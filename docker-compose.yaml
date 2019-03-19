@@ -1,0 +1,43 @@
+version: '3.3'
+services:
+  db:
+    container_name: watch-cash-db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    image: postgres:latest
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=dylan
+      - POSTGRES_PASSWORD=dylan007
+      - POSTGRES_DB=watchcash
+    networks:
+      - watch-cash
+
+  api:
+    depends_on:
+      - db
+    container_name: watch-cash-api
+    environment:
+      - PORT=3001
+      - WATCHCASHAPIKEY=someapikey1995
+      - PG_USER=dylan
+      - PG_PASSWORD=dylan007
+      - PG_DB=watchcash
+      - PG_HOST=db
+    build:
+      context: ./server
+    ports:
+      - '3001:3001'
+    networks:
+      - watch-cash
+    volumes:
+      - ./:/go/src/github.com/dylankilkenny/watch-cash/server
+    command: ['./wait-for-it.sh', 'db:5432', '--', './watch-cash-server']
+
+volumes:
+  pgdata:
+
+networks:
+  watch-cash:
